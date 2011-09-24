@@ -1,0 +1,15 @@
+/.settings/*
+
+/html-template/*
+/bin/*
+/dist/*
+/docs/*
+
+.actionScriptProperties
+.flexProperties
+.flexLibProperties
+.project
+
+Icon
+Thumbs.db
+.DS_Store
