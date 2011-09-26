@@ -1,17 +1,22 @@
 package flest.util
 {
+	import flash.sampler.getMemberNames;
+	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
+	
+	import mx.utils.StringUtil;
 
 	public class ObjUtil
-	{
-		public static function copyData(source: Object, dest: Object): void{
-			for(var prop: * in dest)
-				if (source[prop])
-					dest[prop] = source[prop];
-		}
-		
+	{		
 		public static function getClassName(obj: Object): String{
 			return getQualifiedClassName(obj).split("::").pop();
+		}
+		
+		public static function getRemoteClassName(obj: Object): String{			
+			var remoteName: String = describeType(obj).@alias;
+			if (flest.util.StringUtil.stringHasValue(remoteName))
+				return remoteName;
+			return getClassName(obj);
 		}
 	}
 }
