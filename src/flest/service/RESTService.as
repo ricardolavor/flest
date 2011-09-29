@@ -1,7 +1,5 @@
 package flest.service
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.utils.Proxy;
 	
 	import mx.rpc.AbstractService;
