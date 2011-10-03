@@ -16,6 +16,7 @@ package flest.service
 
 		public var format: String;
 		public var baseURL: String;
+		public var modelPackage: String;
 		
 		private var _singleResource: SingleResource;
 		private var _resource: Resource;
@@ -23,9 +24,10 @@ package flest.service
 		public function RESTService(){}
 										
 		private function configureResource(resource: AbstractResource, pathObjs: Array): *{
-			resource.baseURL = baseURL;
+			resource.baseURL = baseURL;			
 			resource.pathObjs = pathObjs;
-			resource.format = format;			
+			resource.modelPackage = modelPackage;
+			resource.format = format;	
 			return resource;
 		}
 		

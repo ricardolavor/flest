@@ -17,6 +17,7 @@ package flest.service
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPMultiService;
+	import mx.rpc.http.HTTPService;
 	import mx.rpc.http.Operation;
 	import mx.rpc.remoting.Operation;
 	import mx.utils.StringUtil;
@@ -24,18 +25,21 @@ package flest.service
 	internal class AbstractResource
 	{
 		private var _format: String;
+		private var _modelPackage: String;		
 		protected var serviceControl: AbstractService;
 		public var pathObjs: Array;
-		public var baseURL: String;
+		public var baseURL: String;		
 		
-		private function createServiceControl(format: String): AbstractService{
+		private function createServiceControl(format: String, modelPackage: String): AbstractService{
 			switch(format)
 			{
 				case Formats.JSON:
 				{
 					var svc: mx.rpc.http.HTTPMultiService = new mx.rpc.http.HTTPMultiService(baseURL);
 					svc.contentType = "application/json";
-					svc.serializationFilter = new JSONFilter();
+					var filter: JSONFilter = new JSONFilter();
+					filter.modelPackage = modelPackage;
+					svc.serializationFilter = filter;
 					return svc;
 				}
 					
@@ -64,6 +68,18 @@ package flest.service
 		public function get format(): String{
 			return _format;
 		}
+		
+		public function get modelPackage(): String{
+			return _modelPackage;
+		}
+		
+		protected function get media(): String{
+			if (format == Formats.JSON)
+				return ".json";
+			else if (format == Formats.XML)
+				return ".xml";
+			return "";
+		}
 
 		protected function mountURL(includeId: Boolean, includeMedia: Boolean, customAction: String = ""): String{
 			var url:String = '';
@@ -84,10 +100,7 @@ package flest.service
 			if (flest.util.StringUtil.stringHasValue(customAction))
 				url += "/" + customAction;
 			if (flest.util.StringUtil.stringHasValue(url) && includeMedia)
-				if (format == Formats.JSON)
-					url += ".json";
-				else if (format == Formats.XML)
-					url += ".xml";
+				url += media;
 			return baseURL + url;
 		}
 		
@@ -96,10 +109,16 @@ package flest.service
 				format = config.format;
 			if (format == Formats.JSON || format == Formats.XML){
 				var httpOperation: mx.rpc.http.Operation = new mx.rpc.http.Operation(serviceControl as HTTPMultiService, operationName);
-				httpOperation.url = url;
-				httpOperation.method = config && config.method ? config.method.toUpperCase() : defaultMethod;			
-				httpOperation.resultFormat = "text";
-				var argNames: Array = defaultParam ? [ObjUtil.getRemoteClassName(defaultParam)] : null;
+				var method: String = config && config.method ? config.method.toUpperCase() : defaultMethod;			
+				if (method == "PUT" || method == "DELETE")
+				{
+					httpOperation.headers['X_HTTP_METHOD_OVERRIDE'] = method;
+					method = "POST";
+				}
+				httpOperation.url = url;				
+				httpOperation.resultFormat = format == Formats.JSON ? HTTPService.RESULT_FORMAT_TEXT : HTTPService.RESULT_FORMAT_E4X;
+				httpOperation.method = method;
+				var argNames: Array = defaultParam ? [Inflector.underscore(ObjUtil.getRemoteClassName(defaultParam))] : null;
 				if (config && config.params)
 				{
 					if (!argNames)
@@ -118,7 +137,7 @@ package flest.service
 			}
 		}		
 		
-		protected function prepareToken(actionName: String, onSuccessOrOptions:*, url: String, defaultParam: Object = null, defaultMethod: String = "GET"): AsyncToken{
+		protected function prepareToken(actionName: String, onSuccessOrOptions: *, url: String, defaultParam: Object = null, defaultMethod: String = "GET"): AsyncToken{
 			var config: ResourceConfig = null;
 			var success: Function = null;
 			var error: Function = null;
@@ -163,20 +182,23 @@ package flest.service
 
 		public function set format(value: String): void{
 			if (_format != value)
-				serviceControl = createServiceControl(value);
+				serviceControl = createServiceControl(value, modelPackage);
 			_format = value;
 		}
+		
+		public function set modelPackage(value: String): void{
+			if (_modelPackage != value)
+			{
+				if (format == Formats.JSON && serviceControl)
+					((serviceControl as HTTPMultiService).serializationFilter as JSONFilter).modelPackage = value;
+			}
+			_modelPackage = value;
+		}
 								
-		public function action(name:String, onSuccessOrOptions:*=null):AsyncToken
+		public function action(name:String, onSuccessOrOptions: * = null):AsyncToken
 		{
 			//todo: Definir como vai ser a URL
-			return prepareToken(name, onSuccessOrOptions, mountURL(true, true, name));
-		}
-		
-		public function show(onSuccessOrOptions:*=null):AsyncToken
-		{
-			return prepareToken("show", onSuccessOrOptions, mountURL(true, true));
-		}				
-		
+			return prepareToken(name, onSuccessOrOptions, mountURL(true, false, name));
+		}		
 	}
 }
