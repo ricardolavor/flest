@@ -1,7 +1,5 @@
 package flest.service
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.utils.getDefinitionByName;
 	
 	import flest.util.ArrayUtil;

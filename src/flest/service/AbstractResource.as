@@ -1,7 +1,5 @@
 package flest.service
-{
-	import avmplus.getQualifiedClassName;
-	
+{	
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	
