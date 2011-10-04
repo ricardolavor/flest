@@ -50,25 +50,28 @@ package flest.service.filter
 				
 		private function objToModel(obj: Object): Object
 		{
-			for (var key: String in obj)
+			if (obj is Dictionary)
 			{
-				var value: Object = obj[key];
-				var clazz: Class = getClassDefinition(key);					
-				if (clazz)
+				for (var key: String in obj)
 				{
-					var newObj: Object = new clazz();
-					var vars: XMLList = describeType(newObj)..accessor;
-					for each(var variable: XML in vars)
+					var value: Object = obj[key];
+					var clazz: Class = getClassDefinition(key);					
+					if (clazz)
 					{
-						var varName: String = variable.@name; 
-						if (value[varName])
-							newObj[varName] = value[varName];
+						var newObj: Object = new clazz();
+						var vars: XMLList = describeType(newObj)..accessor;
+						for each(var variable: XML in vars)
+						{
+							var varName: String = variable.@name; 
+							if (value[varName])
+								newObj[varName] = value[varName];
+						}
+						return newObj;
 					}
-					return newObj;
+					else
+						return value;
 				}
-				else
-					return value;
-			}			
+			}
 			return obj;
 		}
 		
