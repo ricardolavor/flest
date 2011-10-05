@@ -18,8 +18,6 @@ package flest.service
 			throw new Error("Object required");
 		}
 				
-		public function Resource(){}
-								
 		public function index(onSuccessOrOptions: * = null):AsyncToken
 		{
 			return prepareToken("index", onSuccessOrOptions, mountURL(false, true));

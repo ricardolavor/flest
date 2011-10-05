@@ -18,27 +18,41 @@ package flest.service
 	import mx.rpc.http.HTTPService;
 	import mx.rpc.http.Operation;
 	import mx.rpc.remoting.Operation;
-	import mx.utils.StringUtil;
 	
 	internal class AbstractResource
 	{
-		private var _format: String;
-		private var _modelPackage: String;		
-		protected var serviceControl: AbstractService;
+		private var services: Dictionary = new Dictionary();
 		public var pathObjs: Array;
 		public var baseURL: String;		
+		public var jsonIgnoreClassName: Boolean;
+		public var format: String;
+		public var modelPackage: String;
 		
-		private function createServiceControl(format: String, modelPackage: String): AbstractService{
+		private function createJSONService(): HTTPMultiService{
+			var svc: HTTPMultiService = new HTTPMultiService(baseURL);
+			svc.contentType = "application/json";
+			var filter: JSONFilter = new JSONFilter();
+			filter.modelPackage = modelPackage;
+			svc.serializationFilter = filter;
+			return svc;			
+		}
+		
+		private function getServiceControl(format: String = null): AbstractService{
+			if (!StringUtil.stringHasValue(format))
+				format = this.format;
+			var result: AbstractService = services[format] as AbstractService;
 			switch(format)
 			{
 				case Formats.JSON:
 				{
-					var svc: mx.rpc.http.HTTPMultiService = new mx.rpc.http.HTTPMultiService(baseURL);
-					svc.contentType = "application/json";
-					var filter: JSONFilter = new JSONFilter();
-					filter.modelPackage = modelPackage;
-					svc.serializationFilter = filter;
-					return svc;
+					if (result)
+						((result as HTTPMultiService).serializationFilter as JSONFilter).modelPackage = modelPackage;
+					else
+					{
+						result = createJSONService();
+						services[format] = result;
+					}
+					break;
 				}
 					
 				//todo: implementar os outros formatos	
@@ -48,13 +62,14 @@ package flest.service
 					throw new Error("unexpected format");
 				}
 			}	
-		}	
-		
+			return result;
+		}
+				
 		private function copyOptionsToConfig(options: Object, config: ResourceConfig): void{			
 			var destProps: XMLList = describeType(config)..variable;			
 			for(var optProp: String in options)
 				if (destProps.(@name == optProp).length() == 0)
-					throw new Error(mx.utils.StringUtil.substitute("Unrecognized option '{0}'", optProp)); 
+					throw new Error(StringUtil.substitute("Unrecognized option '{0}'", optProp)); 
 			for each(var cfgProp: XML in destProps)
 			{
 				var propName: String = cfgProp.@name;
@@ -62,15 +77,7 @@ package flest.service
 					config[propName] = options[propName];
 			}			
 		}
-		
-		public function get format(): String{
-			return _format;
-		}
-		
-		public function get modelPackage(): String{
-			return _modelPackage;
-		}
-		
+								
 		protected function get media(): String{
 			if (format == Formats.JSON)
 				return ".json";
@@ -95,18 +102,17 @@ package flest.service
 							url += '/' + item.id;
 				}
 			}
-			if (flest.util.StringUtil.stringHasValue(customAction))
+			if (StringUtil.stringHasValue(customAction))
 				url += "/" + customAction;
-			if (flest.util.StringUtil.stringHasValue(url) && includeMedia)
+			if (StringUtil.stringHasValue(url) && includeMedia)
 				url += media;
 			return baseURL + url;
 		}
 		
 		protected function createOperation(operationName: String, config: ResourceConfig, url: String, defaultParam: Object = null, defaultMethod: String = "GET"): AbstractOperation{
-			if (config && config.format)
-				format = config.format;
-			if (format == Formats.JSON || format == Formats.XML){
-				var httpOperation: mx.rpc.http.Operation = new mx.rpc.http.Operation(serviceControl as HTTPMultiService, operationName);
+			var customFormat: String = (config && StringUtil.stringHasValue(config.format)) ? config.format : this.format;
+			if (customFormat == Formats.JSON || customFormat == Formats.XML){
+				var httpOperation: mx.rpc.http.Operation = new mx.rpc.http.Operation(getServiceControl(customFormat) as HTTPMultiService, operationName);
 				var method: String = config && config.method ? config.method.toUpperCase() : defaultMethod;			
 				if (method == "PUT" || method == "DELETE")
 				{
@@ -114,7 +120,7 @@ package flest.service
 					method = "POST";
 				}
 				httpOperation.url = url;				
-				httpOperation.resultFormat = format == Formats.JSON ? HTTPService.RESULT_FORMAT_TEXT : HTTPService.RESULT_FORMAT_E4X;
+				httpOperation.resultFormat = customFormat == Formats.JSON ? HTTPService.RESULT_FORMAT_TEXT : HTTPService.RESULT_FORMAT_E4X;
 				httpOperation.method = method;
 				var argNames: Array = defaultParam ? [Inflector.underscore(ObjUtil.getRemoteClassName(defaultParam))] : null;
 				if (config && config.params)
@@ -125,12 +131,17 @@ package flest.service
 						argNames.push(prop);
 				}
 				httpOperation.argumentNames = argNames;
+				if (config && customFormat == Formats.JSON)
+				{
+					var filter: JSONFilter = (getServiceControl(customFormat) as HTTPMultiService).serializationFilter as JSONFilter;
+					filter.defineJSONIgnoreClassNameForOperation(httpOperation, config.jsonIgnoreClassName);					
+				}
 				return httpOperation;				
 			}
 			else
 			{
 				//todo: finalizar esse trecho de código
-				var remoteOperation: mx.rpc.remoting.Operation = new mx.rpc.remoting.Operation(serviceControl, operationName);
+				var remoteOperation: mx.rpc.remoting.Operation = new mx.rpc.remoting.Operation(getServiceControl(customFormat), operationName);
 				return remoteOperation;
 			}
 		}		
@@ -175,24 +186,7 @@ package flest.service
 			}
 			return token;			
 		}
-
-		public function AbstractResource(){}				
-
-		public function set format(value: String): void{
-			if (_format != value)
-				serviceControl = createServiceControl(value, modelPackage);
-			_format = value;
-		}
-		
-		public function set modelPackage(value: String): void{
-			if (_modelPackage != value)
-			{
-				if (format == Formats.JSON && serviceControl)
-					((serviceControl as HTTPMultiService).serializationFilter as JSONFilter).modelPackage = value;
-			}
-			_modelPackage = value;
-		}
-								
+												
 		public function action(name:String, onSuccessOrOptions: * = null):AsyncToken
 		{
 			//todo: Definir como vai ser a URL

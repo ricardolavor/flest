@@ -18,5 +18,15 @@ package flest.util
 				return remoteName;
 			return getClassName(obj);
 		}
+		
+		public static function dynObjectHasOnlyOneProperty(dynObj: Object): Boolean{
+			var i: int = 0;
+			for(var propName: String in dynObj){
+				i++;
+				if (i > 1)
+					break;
+			}				
+			return i == 1;
+		}
 	}
 }

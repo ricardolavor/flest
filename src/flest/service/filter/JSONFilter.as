@@ -7,6 +7,7 @@ package flest.service.filter
 	
 	import flest.serialization.json.JSON;
 	import flest.util.Inflector;
+	import flest.util.ObjUtil;
 	import flest.util.StringUtil;
 	
 	import mx.collections.ArrayList;
@@ -16,6 +17,7 @@ package flest.service.filter
 	public class JSONFilter extends SerializationFilter
 	{
 		private var unregisteredClasses: Dictionary;
+		private var jsonIgnoreClassNamePerOperation: Dictionary = new Dictionary();
 		public var modelPackage: String;
 
 		public function JSONFilter()
@@ -47,37 +49,52 @@ package flest.service.filter
 			}	
 			return clazz;
 		}
+		
+		private function adaptObjToASPattern(obj: Object): Object{
+			var result: Object = new Object();
+			for (var prop: String in obj)
+				result[Inflector.camelize(prop)] = obj[prop];
+			return result;
+		}
 				
 		private function objToModel(obj: Object): Object
 		{
-			if (obj is Dictionary)
-			{
+			if (ObjUtil.dynObjectHasOnlyOneProperty(obj))
 				for (var key: String in obj)
 				{
 					var value: Object = obj[key];
-					var clazz: Class = getClassDefinition(key);					
+					if (value == null || value is String || value is Number || value is Date || value is Array || value is XML || value is Boolean)
+						break;
+					var clazz: Class = getClassDefinition(key);
+					var newObj: Object = null;
 					if (clazz)
 					{
-						var newObj: Object = new clazz();
+						newObj = new clazz();
 						var vars: XMLList = describeType(newObj)..accessor;
 						for each(var variable: XML in vars)
 						{
-							var varName: String = variable.@name; 
-							if (value[varName])
-								newObj[varName] = value[varName];
+							var targetVarName: String = variable.@name;
+							var sourceVarName: String = Inflector.underscore(variable.@name);
+							if (value[sourceVarName])
+								newObj[targetVarName] = value[sourceVarName];
 						}
-						return newObj;
 					}
 					else
-						return value;
+						newObj = adaptObjToASPattern(value);
+					return newObj;
 				}
-			}
-			return obj;
+			return adaptObjToASPattern(obj);
 		}
 		
 		override public function deserializeResult(operation:AbstractOperation, result:Object):Object
 		{
 			var result: Object = JSON.decode(result.toString());
+			if (jsonIgnoreClassNamePerOperation[operation])
+			{
+				delete jsonIgnoreClassNamePerOperation[operation];
+				return result;
+			}
+			delete jsonIgnoreClassNamePerOperation[operation];
 			unregisteredClasses = new Dictionary();
 			if (result is Array)
 			{
@@ -95,6 +112,10 @@ package flest.service.filter
 			if (operation.method == "POST")
 				return JSON.encode(serializedParams);
 			return serializedParams;
+		}
+		
+		public function defineJSONIgnoreClassNameForOperation(operation: AbstractOperation, value: Boolean): void{
+			jsonIgnoreClassNamePerOperation[operation] = value;
 		}
 		
 	}

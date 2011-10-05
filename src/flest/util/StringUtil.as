@@ -32,6 +32,7 @@
 
 package flest.util
 {
+	import mx.utils.StringUtil;
 	
 	/**
 	* 	Class that contains static utility methods for manipulating Strings.
@@ -235,5 +236,11 @@ package flest.util
 			//todo: this needs a unit test
 			return (s != null && s.length > 0);			
 		}
+		
+		public static function substitute(str:String, ... rest):String
+		{
+			return mx.utils.StringUtil.substitute(str, rest);
+		}
+
 	}
 }

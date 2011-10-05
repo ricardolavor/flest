@@ -15,6 +15,7 @@ package flest.service
 		public var format: String;
 		public var baseURL: String;
 		public var modelPackage: String;
+		public var jsonIgnoreClassName: Boolean = false;
 		
 		private var _singleResource: SingleResource;
 		private var _resource: Resource;
