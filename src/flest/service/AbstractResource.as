@@ -18,6 +18,7 @@ package flest.service
 	import mx.rpc.http.HTTPService;
 	import mx.rpc.http.Operation;
 	import mx.rpc.remoting.Operation;
+	import mx.utils.ObjectUtil;
 	
 	internal class AbstractResource
 	{
@@ -91,12 +92,11 @@ package flest.service
 			for (var i: int = 0; i < pathObjs.length; i++){
 				var item: Object = pathObjs[i];
 				url += '/';
-				if (item is String)
+				if (ObjUtil.isSimple(item))
 					url += item;
 				else
 				{
-					var className: String = ObjUtil.getClassName(item);
-					url += Inflector.pluralize(className);
+					url += ObjUtil.getClassNameInPlural(item);
 					if (item.id)
 						if (i < pathObjs.length - 1 || includeId) 
 							url += '/' + item.id;
@@ -106,7 +106,7 @@ package flest.service
 				url += "/" + customAction;
 			if (StringUtil.stringHasValue(url) && includeMedia)
 				url += media;
-			return baseURL + url;
+			return baseURL + url.toLowerCase();
 		}
 		
 		protected function createOperation(operationName: String, config: ResourceConfig, url: String, defaultParam: Object = null, defaultMethod: String = "GET"): AbstractOperation{
