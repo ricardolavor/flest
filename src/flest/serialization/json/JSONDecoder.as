@@ -51,6 +51,8 @@ package flest.serialization.json
 		/** The current token from the tokenizer */
 		private var token:JSONToken;
 		
+		private var replaceObjFunction: Function;
+		
 		/**
 		 * Constructs a new JSONDecoder to parse a JSON string
 		 * into a native object.
@@ -63,9 +65,10 @@ package flest.serialization.json
 		 * @playerversion Flash 9.0
 		 * @tiptext
 		 */
-		public function JSONDecoder( s:String, strict:Boolean )
+		public function JSONDecoder( s:String, strict:Boolean, replaceObjFunc: Function )
 		{
 			this.strict = strict;
+			this.replaceObjFunction = replaceObjFunc;
 			tokenizer = new JSONTokenizer( s, strict );
 			
 			nextToken();
@@ -205,6 +208,12 @@ package flest.serialization.json
 			return null;
 		}
 		
+		private function replaceObj(obj: Object): Object{
+			if (replaceObjFunction != null)
+				return replaceObjFunction(obj);
+			return obj;
+		}
+		
 		/**
 		 * Attempt to parse an object.
 		 */
@@ -225,7 +234,7 @@ package flest.serialization.json
 			if ( token.type == JSONTokenType.RIGHT_BRACE )
 			{
 				// we're done reading the object, so return it
-				return o;
+				return replaceObj(o);
 			}
 			// in non-strict mode an empty object is also a comma
 			// followed by a right bracket
@@ -237,7 +246,7 @@ package flest.serialization.json
 				// check to see if we're reached the end of the object
 				if ( token.type == JSONTokenType.RIGHT_BRACE )
 				{
-					return o;
+					return replaceObj(o);
 				}
 				else
 				{
@@ -271,7 +280,7 @@ package flest.serialization.json
 						if ( token.type == JSONTokenType.RIGHT_BRACE )
 						{
 							// we're done reading the object, so return it
-							return o;
+							return replaceObj(o);
 						}
 						else if ( token.type == JSONTokenType.COMMA )
 						{
@@ -287,7 +296,7 @@ package flest.serialization.json
 								// Reached ",}" as the end of the object, so return it
 								if ( token.type == JSONTokenType.RIGHT_BRACE )
 								{
-									return o;
+									return replaceObj(o);
 								}
 							}
 						}

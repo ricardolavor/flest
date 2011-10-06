@@ -76,9 +76,9 @@ package flest.serialization.json
 		 * @playerversion Flash 9.0
 		 * @tiptext
 		 */
-		public static function decode( s:String, strict:Boolean = true ):*
-		{
-			return new JSONDecoder( s, strict ).getValue();
+		public static function decode( s:String, strict:Boolean = true, replaceObjFunc: Function = null):*
+		{			
+			return new JSONDecoder( s, strict, replaceObjFunc ).getValue();
 		}
 	
 	}

@@ -4,6 +4,7 @@ package flest.util
 	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 
 	public class ObjUtil
@@ -27,6 +28,18 @@ package flest.util
 					break;
 			}				
 			return i == 1;
+		}
+		
+		public static function isSimple(obj: Object): Boolean{
+			return ObjectUtil.isSimple(obj);
+		}
+		
+		public static function getClassNameInPlural(obj: Object): String{
+			var m: XML = describeType(obj);
+			var plural: XMLList = m..metadata.(@name == "Plural");
+			if (plural.length() > 0)
+				return plural.arg.(@key == "name").@value;
+			return Inflector.pluralize(getClassName(obj));
 		}
 	}
 }
