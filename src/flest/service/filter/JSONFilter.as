@@ -56,14 +56,14 @@ package flest.service.filter
 				result[Inflector.camelize(prop)] = obj[prop];				
 			return result;
 		}
-				
+						
 		private function objToModel(obj: Object): Object
 		{
 			if (ObjUtil.dynObjectHasOnlyOneProperty(obj))
 				for (var key: String in obj)
 				{
 					var value: Object = obj[key];
-					if (value == null || value is String || value is Number || value is Date || value is Array || value is XML || value is Boolean)
+					if (ObjUtil.isSimple(value))
 						break;
 					var clazz: Class = getClassDefinition(key);
 					var newObj: Object = null;
@@ -88,22 +88,14 @@ package flest.service.filter
 		
 		override public function deserializeResult(operation:AbstractOperation, result:Object):Object
 		{
-			var result: Object = JSON.decode(result.toString());
-			if (jsonIgnoreClassNamePerOperation[operation])
-			{
-				delete jsonIgnoreClassNamePerOperation[operation];
-				return result;
-			}
-			delete jsonIgnoreClassNamePerOperation[operation];
 			unregisteredClasses = new Dictionary();
-			if (result is Array)
-			{
-				var newResult: Array = new Array();
-				for each(var dic: Object in result)
-					newResult.push(objToModel(dic));
-				return newResult;
-			}
-			return objToModel(result);
+			var result: Object;
+			if (jsonIgnoreClassNamePerOperation[operation])
+				result = JSON.decode(result.toString());
+			else
+				result = JSON.decode(result.toString(), true, objToModel);
+			delete jsonIgnoreClassNamePerOperation[operation];
+			return result;
 		}
 		
 		override public function serializeParameters(operation:AbstractOperation, params:Array):Object
