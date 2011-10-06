@@ -53,7 +53,7 @@ package flest.service.filter
 		private function adaptObjToASPattern(obj: Object): Object{
 			var result: Object = new Object();
 			for (var prop: String in obj)
-				result[Inflector.camelize(prop)] = obj[prop];
+				result[Inflector.camelize(prop)] = adaptObjToASPattern(obj[prop]);				
 			return result;
 		}
 				

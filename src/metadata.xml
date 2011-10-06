@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations version="1.0">
+	<metadata name="Plural" description="Tells the flest framework the class name in the plural">
+		<context name="class">
+			<attribute name="name" type="String" required="true" />
+		</context>
+	</metadata>
+</annotations>
+
