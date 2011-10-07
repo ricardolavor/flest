@@ -1,8 +1,8 @@
-package flest.service
+package flest.services
 {
 	import flash.utils.getDefinitionByName;
 	
-	import flest.util.ArrayUtil;
+	import flest.utils.ArrayUtil;
 	
 	import mx.rpc.AbstractOperation;
 	import mx.rpc.AbstractService;

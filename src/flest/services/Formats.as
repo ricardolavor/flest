@@ -1,4 +1,4 @@
-package flest.service
+package flest.services
 {
 	public final class Formats
 	{

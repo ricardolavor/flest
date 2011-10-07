@@ -30,7 +30,7 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package flest.util
+package flest.utils
 {
 	import flash.utils.Dictionary;
 	

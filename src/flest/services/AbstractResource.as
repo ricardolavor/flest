@@ -1,12 +1,12 @@
-package flest.service
+package flest.services
 {	
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	
-	import flest.service.filter.JSONFilter;
-	import flest.util.Inflector;
-	import flest.util.ObjUtil;
-	import flest.util.StringUtil;
+	import flest.services.filters.JSONFilter;
+	import flest.utils.Inflector;
+	import flest.utils.ObjUtil;
+	import flest.utils.StringUtil;
 	
 	import mx.rpc.AbstractOperation;
 	import mx.rpc.AbstractService;

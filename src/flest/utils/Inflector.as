@@ -33,7 +33,7 @@
  * Redistributions of files must retain the above copyright notice.
  */
 
-package flest.util
+package flest.utils
 {	
 	public class Inflector
 	{

@@ -1,4 +1,4 @@
-package flest.util
+package flest.utils
 {
 	import flash.sampler.getMemberNames;
 	import flash.utils.describeType;
@@ -15,7 +15,7 @@ package flest.util
 		
 		public static function getRemoteClassName(obj: Object): String{			
 			var remoteName: String = describeType(obj).@alias;
-			if (flest.util.StringUtil.stringHasValue(remoteName))
+			if (flest.utils.StringUtil.stringHasValue(remoteName))
 				return remoteName;
 			return getClassName(obj);
 		}

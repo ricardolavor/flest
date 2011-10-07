@@ -1,4 +1,4 @@
-package flest.service.filter
+package flest.services.filters
 {
 	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
@@ -6,9 +6,9 @@ package flest.service.filter
 	import flash.utils.getDefinitionByName;
 	
 	import flest.serialization.json.JSON;
-	import flest.util.Inflector;
-	import flest.util.ObjUtil;
-	import flest.util.StringUtil;
+	import flest.utils.Inflector;
+	import flest.utils.ObjUtil;
+	import flest.utils.StringUtil;
 	
 	import mx.collections.ArrayList;
 	import mx.rpc.http.AbstractOperation;

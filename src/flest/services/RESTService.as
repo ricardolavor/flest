@@ -1,4 +1,4 @@
-package flest.service
+package flest.services
 {
 	import flash.utils.Proxy;
 	
