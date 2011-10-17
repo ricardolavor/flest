@@ -2,12 +2,14 @@
 
 /html-template/*
 /bin/*
+/bin-debug/*
 /dist/*
 /docs/*
 
 .actionScriptProperties
 .flexProperties
 .flexLibProperties
+.FlexUnitSettings
 .project
 
 Icon
