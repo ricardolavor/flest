@@ -56,7 +56,12 @@ package flest.services.filters
 				result[Inflector.camelize(prop)] = obj[prop];				
 			return result;
 		}
-						
+		
+		private function copyPropertyValue(source: Object, target: Object, propName: String): void{
+			if (source[propName])
+				target[propName] = source[propName];			
+		}
+								
 		private function objToModel(obj: Object): Object
 		{
 			if (ObjUtil.dynObjectHasOnlyOneProperty(obj))
@@ -70,14 +75,14 @@ package flest.services.filters
 					if (clazz)
 					{
 						newObj = new clazz();
-						var vars: XMLList = describeType(newObj)..accessor;
-						for each(var variable: XML in vars)
-						{
-							var targetVarName: String = variable.@name;
-							var sourceVarName: String = Inflector.underscore(variable.@name);
-							if (value[sourceVarName])
-								newObj[targetVarName] = value[sourceVarName];
-						}
+						var type: XML = describeType(newObj);
+						var vars: XMLList = type..accessor;
+						var variable: XML;
+						for each(variable in vars)
+							copyPropertyValue(value, newObj, variable.@name);
+						vars = type..variable;
+						for each(variable in vars)
+							copyPropertyValue(value, newObj, variable.@name);
 					}
 					else
 						newObj = adaptObjToASPattern(value);
